@@ -40,7 +40,7 @@ export default function App() {
         showsVerticalScrollIndicator={false}
       >
         <Header
-          siteName="Greenhouse #A1"
+          siteName="Greenhouse A1"
           coalescedLatest={coalescedLatest ?? undefined}
           state={state}
         />
@@ -161,9 +161,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
   },
-  live: { backgroundColor: "#0a7d28" },
-  reconnecting: { backgroundColor: "#b07d00" },
-  offline: { backgroundColor: "#9b1c1c" },
   small: { fontSize: 12, color: "#334155", marginTop: 6 },
   summary: { marginTop: 8, marginBottom: 12, color: "#334155" },
   tilesRow: { flexDirection: "row", marginBottom: 12 },
