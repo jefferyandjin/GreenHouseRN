@@ -40,6 +40,18 @@ A React Native (Expo) project for real-time sensor data monitoring, filtering, a
 
 ---
 
+## Transport Choice and Trade off
+
+For this exercise project, I chose WebSocket as the real-time transport. As the goal is to demonstrate real-time streaming, reconnect logic, and client-side data processing, WebSockets are more easily to setup with node.js and simulate test environment.
+
+For real production deployment, however, MQTT over WebSocket (secure websocket wss) would be the choice. MQTT is an IoT-focused protocol designed for sensor networks, offering reliable QoS levels, lightweight bandwidth usage, offline buffering, bidirectional communication and seamless integration with cloud IoT platforms. For large-scale sensor deployments, MQTT provides more robust delivery guarantees and scalability than raw WebSockets. It can integrate with IoT services from AWS IoT Core and other IoT clouds.
+
+SSE (Server-Sent Events), it runs over plain http and support reconnect. But it only support server → client unidirectional communication and doesn't handle large amount of concurrent connection. React native doesn't natively support it. So it is not recommended for both developemnt and production.
+
+gRPC-Web streaming is another option, but also does not support true bidirectional streaming. It requires heavier integration compare with websocekt and MQTT over websocket. React native doesn't natively support it
+
+Therefore my choice is using WebSocket for development and simulation test purpose and for production/stage test, the next step is to run local MQTT broker and add use a piece of node js code to mock up sensor data stream to send to MQTT broker and then add MQTT client in react native to connect to MQTT broker and receive data stream.
+
 ## Setup
 
 1. **Clone the repository**
@@ -123,24 +135,26 @@ npm test
 hooks/
   DataEngine/
     useDataEngine.ts      # Main data engine hook
-    utils/
-      processSensorData.ts
-      transformFilter.ts
-      ewmaDetector.ts
-      types.ts
-screens/
+    WebSocketProvider.ts
+    processSensorData.ts
+    transformFilter.ts
+    ewmaDetector.ts
+    types.ts
 components/
+    DebugPanel.tsx
+    EventsList.tsx
+    FAB.tsx
+    Header.tsx
+    MetricTile.tsx
+    Spacer.tsx
+    Sparkline.tsx
 App.tsx
-babel.config.js
-package.json
+index.ts
 ```
 
-**Highlights:**
-
-- `useDataEngine.ts` maintains local buffer, filtered values, anomaly events.
+- `useDataEngine.ts` maintains local buffer, filtered values, anomaly events. Snapshot/delta data handled uniformly in buffer.
 - `transformFilter.ts` smooths sensor streams over last 5 samples.
 - `ewmaDetector.ts` computes z-score for anomaly detection.
-- Snapshot/delta data handled uniformly in buffer.
 
 ---
 
