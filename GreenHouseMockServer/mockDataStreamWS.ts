@@ -8,7 +8,6 @@ function getRandomValue(base: number, variation: number): number {
 }
 
 function getRandomEvent(): string {
-  // 80% chance to return an empty string
   if (Math.random() < 0.8) return "";
 
   const events = ["CO2 warning", "temperature HIGH"];

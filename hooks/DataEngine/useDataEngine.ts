@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { DataProvider, SensorPayload, ConnectionState } from "./types";
 import { processSensorData } from "./processSensorData";
 import { transformFilter } from "./transformFilter";
+import { EWMAState, createEWMAState, updateEWMA } from "./ewmaDetector";
 
 export function useDataEngine(provider: DataProvider) {
   const [latest, setLatest] = useState<SensorPayload | null>(null);
@@ -28,6 +29,10 @@ export function useDataEngine(provider: DataProvider) {
   const tempSamplesRef = useRef<number[]>([]);
   const humiditySamplesRef = useRef<number[]>([]);
   const co2SamplesRef = useRef<number[]>([]);
+
+  const tempEWMARef = useRef(createEWMAState());
+  const humidityEWMARef = useRef(createEWMAState());
+  const co2EWMARef = useRef(createEWMAState());
 
   // keep ref updated
   useEffect(() => {
@@ -59,7 +64,7 @@ export function useDataEngine(provider: DataProvider) {
       }
     });
     provider.onEvent((event) => {
-      setEvents((prev) => [event, ...prev].slice(0, 200));
+      //setEvents((prev) => [event, ...prev].slice(0, 200));
     });
     provider.onStateChange((newState) => {
       if (newState === ConnectionState.RECONNECTING) {
@@ -141,6 +146,39 @@ export function useDataEngine(provider: DataProvider) {
         co2SamplesRef.current.unshift(item.co2);
         if (co2SamplesRef.current.length > 5) co2SamplesRef.current.pop();
         const filteredCo2 = transformFilter(co2SamplesRef.current);
+
+        // --- EWMA z-score anomaly detection ---
+        const tempResult = updateEWMA(tempEWMARef.current, filteredTemp, 2);
+        const humidityResult = updateEWMA(
+          humidityEWMARef.current,
+          filteredHumidity,
+          1
+        );
+        const co2Result = updateEWMA(co2EWMARef.current, filteredCo2, 1);
+
+        // emit anomaly events
+        if (tempResult.isAnomaly) {
+          console.warn("Temp anomaly!", filteredTemp, tempResult.zScore);
+          setEvents((prev) => [
+            {
+              ...item,
+              event: `Temperature anomaly: ${filteredTemp.toFixed(
+                1
+              )}°C (z=${tempResult.zScore.toFixed(2)})`,
+            } as any,
+            ...prev,
+          ]);
+        }
+        if (humidityResult.isAnomaly) {
+          console.warn(
+            "Humidity anomaly!",
+            filteredHumidity,
+            humidityResult.zScore
+          );
+        }
+        if (co2Result.isAnomaly) {
+          console.warn("CO2 anomaly!", filteredCo2, co2Result.zScore);
+        }
 
         console.log("Filtered values:", {
           temp: filteredTemp,
