@@ -54,6 +54,13 @@ export function useDataEngine(provider: DataProvider) {
     provider.onDeltaData((payload) => {
       setLatest(payload);
       setBuffer((prev) => [...prev, payload]);
+
+      setHistory((prev) => {
+        if (prev.length === 0) {
+          return [{ timestamp: payload.timestamp, value: payload.temperature }];
+        }
+        return prev;
+      });
     });
     provider.onSnapshotData((dataArray) => {
       if (dataArray.length > 0) {
@@ -85,11 +92,10 @@ export function useDataEngine(provider: DataProvider) {
       const latestValue = latestRef.current;
       if (!latestValue) return;
       setHistory((prev) => {
-        const now = Date.now();
         const next = [
           ...prev,
-          { timestamp: now, value: latestValue.temperature },
-        ].filter((p) => now - p.timestamp <= 15 * 60 * 1000);
+          { timestamp: latestValue.timestamp, value: latestValue.temperature },
+        ].filter((p) => latestValue.timestamp - p.timestamp <= 15 * 60 * 1000);
         return next;
       });
     }, 60 * 1000);
