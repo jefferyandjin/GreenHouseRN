@@ -12,6 +12,7 @@ export interface ProcessedDataResult {
  * @param baseTimestamp - Only keep items with timestamp >= baseTimestamp
  * @param gapAllowed - Maximum allowed gap in ms
  * @param arr - Input sensor payload array (unsorted, may contain duplicates)
+ * @returns ProcessedDataResult
  */
 export function processSensorData(
   baseTimestamp: number,
