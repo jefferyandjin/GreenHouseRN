@@ -14,13 +14,14 @@
     "expo": "~53.0.22",
     "expo-file-system": "~18.1.11",
     "expo-image-picker": "~16.1.4",
+    "expo-sqlite": "~15.2.14",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.6",
+    "react-native-background-fetch": "^4.2.8",
     "react-native-sqlite-storage": "^6.0.1",
     "react-native-svg": "15.11.2",
-    "zustand": "^5.0.8",
-    "expo-sqlite": "~15.2.14"
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

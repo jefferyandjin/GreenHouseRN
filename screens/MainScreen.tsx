@@ -20,12 +20,15 @@ import FAB from "../components/FAB";
 import { addPhotoToQueue } from "../utils/photoQueue";
 
 import { useDataEngine, WebSocketProvider } from "../hooks";
+import { useDataEngineStore } from "../store/dataEngineStore";
+import { configureBackgroundFetch } from "../hooks/backgroundProcess/backgroundFetch";
 
 const WS_HOST =
   Platform.OS === "android" ? "ws://10.0.2.2:4000" : "ws://localhost:4000"; //TODO: use env var later
 
 export default function App() {
-  const provider = useMemo(() => {
+  // option A ---- USE useDataEngine directly
+  /*  const provider = useMemo(() => {
     return new WebSocketProvider(WS_HOST, "/");
   }, []); // only create once
 
@@ -38,7 +41,31 @@ export default function App() {
     history,
     dupCount,
     gapCount,
-  } = useDataEngine(provider);
+  } = useDataEngine(provider);*/
+
+  // Configure background fetch for data upload
+  useEffect(() => {
+    configureBackgroundFetch();
+  }, []);
+
+  // option B ---- USE zustand store
+  const latest = useDataEngineStore((state) => state.latest);
+  const coalescedLatest = useDataEngineStore((state) => state.coalescedLatest);
+  const events = useDataEngineStore((state) => state.events);
+  const history = useDataEngineStore((state) => state.history);
+  const stateConnection = useDataEngineStore((state) => state.state);
+  const reconnectCount = useDataEngineStore((state) => state.reconnectCount);
+  const gapCount = useDataEngineStore((state) => state.gapCount);
+
+  // Get actions
+  const initProvider = useDataEngineStore((state) => state.initProvider);
+
+  // Initialize provider once when component mounts
+  useEffect(() => {
+    const cleanup = initProvider(new WebSocketProvider(WS_HOST, "/"));
+    // cleanup function returned from initProvider
+    return cleanup;
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,7 +77,7 @@ export default function App() {
         <Header
           siteName="Greenhouse A1"
           coalescedLatest={coalescedLatest ?? undefined}
-          state={state}
+          state={stateConnection}
         />
 
         <Spacer size={24} />
@@ -106,8 +133,8 @@ export default function App() {
               eventsPerSecEma: 0,
               reconnectCount,
               seq: 0,
-              version: "1.0.0",
-              dupCount: dupCount,
+              version: "1.0.1",
+              dupCount: 0, // TODO add dupCount tracking
               gapCount: gapCount,
             }}
             accessibilityLabel="Debug statistics"
