@@ -17,8 +17,8 @@ export class MqttProvider implements DataProvider {
     // TODO: implement MQTT disconnect
   }
 
-  onEvent(cb: (event: SensorPayload) => void): void {
-    // TODO: wire MQTT events to cb
+  reSync(): void {
+    // TODO: implement MQTT resync
   }
 
   onStateChange(cb: (state: ConnectionState) => void): void {

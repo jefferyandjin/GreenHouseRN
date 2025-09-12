@@ -78,6 +78,13 @@ export class WebSocketProvider implements DataProvider {
     connectInternal();
   }
 
+  reSync() {
+    console.info("Re-sync requested");
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send("resync");
+    }
+  }
+
   disconnect() {
     this.closed = true;
     this.ws?.close();

@@ -17,7 +17,13 @@ function getRandomEvent(): string {
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
-  let snapShotDataArray = [];
+  let snapShotDataArray: {
+    temperature: number;
+    humidity: number;
+    co2: number;
+    event: string;
+    timestamp: number;
+  }[] = [];
   for (let index = 0; index < 20; index++) {
     const newsMessage = {
       temperature: getRandomValue(25, 5),
@@ -52,12 +58,38 @@ wss.on("connection", (ws) => {
       data: [data],
     };
     ws.send(JSON.stringify(deltaDataMessage));
-    console.log("data sent:", deltaDataMessage);
+    //console.log("data sent:", deltaDataMessage);
   }, 100);
 
   ws.on("close", () => {
     console.log("Client disconnected");
     clearInterval(interval);
+  });
+
+  ws.on("message", (message) => {
+    console.log("Received message from client:", message.toString());
+
+    if (message.toString() === "resync") {
+      for (let index = 0; index < 20; index++) {
+        const newsMessage = {
+          temperature: getRandomValue(25, 5),
+          humidity: getRandomValue(50, 2),
+          co2: getRandomValue(800, 20),
+          event: getRandomEvent(),
+          timestamp: Date.now() - (20 - index) * 100,
+          // seq: Date.now(), //(Date.now() / 1000).toFixed(0),
+        };
+        snapShotDataArray.push(newsMessage);
+      }
+
+      const snapshotMessage = {
+        type: "snapshot",
+        data: snapShotDataArray,
+      };
+      ws.send(JSON.stringify(snapshotMessage));
+      snapShotDataArray = [];
+      //console.log("snapshot sent:", snapshotMessage);
+    }
   });
 });
 

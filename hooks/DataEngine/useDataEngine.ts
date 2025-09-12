@@ -1,18 +1,28 @@
 // hooks/DataEngine/useDataEngine.ts
 import { useEffect, useRef, useState } from "react";
-import { DataProvider, SensorPayload, ConnectionState } from "./types";
+import {
+  DataProvider,
+  SensorPayload,
+  ConnectionState,
+  EventPayload,
+  SensorType,
+} from "./types";
 import { processSensorData } from "./processSensorData";
 import { transformFilter } from "./transformFilter";
 import { EWMAState, createEWMAState, updateEWMA } from "./ewmaDetector";
+import { useDatabaseStore } from "../../store/databaseStore";
+import { payloadsToRecords } from "../../utils/dataConversion";
 
 export function useDataEngine(provider: DataProvider) {
   const [latest, setLatest] = useState<SensorPayload | null>(null);
   const [coalescedLatest, setCoalescedLatest] = useState<SensorPayload | null>(
     null
   );
-  const [events, setEvents] = useState<SensorPayload[]>([]);
+  const [events, setEvents] = useState<EventPayload[]>([]);
   const [state, setState] = useState<ConnectionState>(ConnectionState.OFFLINE);
   const [reconnectCount, setReconnectCount] = useState(0);
+  const [dupCount, setDupCount] = useState(0);
+  const [gapCount, setGapCount] = useState(0);
   const [history, setHistory] = useState<
     { timestamp: number; value: number }[]
   >([]);
@@ -62,6 +72,7 @@ export function useDataEngine(provider: DataProvider) {
         return prev;
       });
     });
+
     provider.onSnapshotData((dataArray) => {
       if (dataArray.length > 0) {
         console.log("Received snapshot with", dataArray.length, "items");
@@ -70,9 +81,7 @@ export function useDataEngine(provider: DataProvider) {
         setBuffer((prev) => [...prev, ...dataArray]); // buffer snapshot
       }
     });
-    provider.onEvent((event) => {
-      //setEvents((prev) => [event, ...prev].slice(0, 200));
-    });
+
     provider.onStateChange((newState) => {
       if (newState === ConnectionState.RECONNECTING) {
         setReconnectCount((x) => x + 1);
@@ -126,9 +135,15 @@ export function useDataEngine(provider: DataProvider) {
 
       if (!gapCheckPass) {
         console.warn("Gap detected in sensor data!");
+        setGapCount((prev) => prev + 1);
+        provider.reSync();
       }
 
       setBuffer([]);
+
+      useDatabaseStore
+        .getState()
+        .addSensorRecords(payloadsToRecords(sanitizedSorted));
 
       //TODO, ideally the filter input source should be from database.
       // because if the app is restarted, the in-memory buffer is lost.
@@ -167,10 +182,11 @@ export function useDataEngine(provider: DataProvider) {
           console.warn("Temp anomaly!", filteredTemp, tempResult.zScore);
           setEvents((prev) => [
             {
-              ...item,
               event: `Temperature anomaly: ${filteredTemp.toFixed(
                 1
               )}°C (z=${tempResult.zScore.toFixed(2)})`,
+              type: SensorType.TEMPERATURE,
+              timestamp: item.timestamp,
             } as any,
             ...prev,
           ]);
@@ -186,26 +202,35 @@ export function useDataEngine(provider: DataProvider) {
           console.warn("CO2 anomaly!", filteredCo2, co2Result.zScore);
         }
 
-        console.log("Filtered values:", {
-          temp: filteredTemp,
-          humidity: filteredHumidity,
-          co2: filteredCo2,
-        });
+        // console.log("Filtered values:", {
+        //   temp: filteredTemp,
+        //   humidity: filteredHumidity,
+        //   co2: filteredCo2,
+        // });
       }
 
       setProcessedLatestTimestamp(latestCheckedTimestamp);
 
-      console.log(
-        "Processed",
-        sanitizedSorted.length,
-        "items",
-        "processedLatestTimestamp:",
-        latestCheckedTimestamp
-      );
+      // console.log(
+      //   "Processed",
+      //   sanitizedSorted.length,
+      //   "items",
+      //   "processedLatestTimestamp:",
+      //   latestCheckedTimestamp
+      // );
     }, 1000);
 
     return () => clearInterval(interval);
   }, []); // run once
 
-  return { latest, coalescedLatest, events, state, reconnectCount, history };
+  return {
+    latest,
+    coalescedLatest,
+    events,
+    state,
+    reconnectCount,
+    history,
+    dupCount,
+    gapCount,
+  };
 }

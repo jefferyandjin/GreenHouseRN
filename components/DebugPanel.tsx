@@ -24,10 +24,9 @@ export default function DebugPanel({
     { label: "Last event age (ms)", value: stats.lastEventAgeMs.toFixed(0) },
     { label: "Events/sec (EMA)", value: stats.eventsPerSecEma.toFixed(2) },
     { label: "Reconnects", value: stats.reconnectCount },
-    { label: "Seq", value: stats.seq },
-    { label: "Version", value: stats.version },
     { label: "Duplicates", value: stats.dupCount },
     { label: "Gaps", value: stats.gapCount },
+    { label: "Version / Seq", value: `${stats.version} / ${stats.seq}` },
   ];
 
   return (
