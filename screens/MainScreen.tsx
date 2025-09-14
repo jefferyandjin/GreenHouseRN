@@ -8,7 +8,10 @@ import {
   Alert,
   SafeAreaView,
   ScrollView,
+  useColorScheme,
 } from "react-native";
+
+import { darkTheme, lightTheme } from "../themes/themes";
 import Header from "../components/Header";
 import MetricTile from "../components/MetricTile";
 import SparklineSkia from "../components/SparkLineSkia";
@@ -62,8 +65,14 @@ export default function App() {
     return cleanup;
   }, []);
 
+  const colorScheme = useColorScheme();
+  // console.log("colorScheme", colorScheme);
+  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.safeBackground }]}
+    >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -110,16 +119,14 @@ export default function App() {
           />
         </View>
 
-        <View style={styles.eventsBox}>
-          <EventsList
-            events={events.map((e) => ({
-              id: String(e.timestamp),
-              message: e.event,
-              timestamp: e.timestamp,
-            }))}
-            accessibilityLabel="Recent anomaly events"
-          />
-        </View>
+        <EventsList
+          events={events.map((e) => ({
+            id: String(e.timestamp),
+            message: e.event,
+            timestamp: e.timestamp,
+          }))}
+          accessibilityLabel="Recent anomaly events"
+        />
 
         <View style={styles.debugPanelBox}>
           <DebugPanel
@@ -162,7 +169,6 @@ export default function App() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#f3f4f6",
   },
   scroll: {
     flex: 1,
@@ -173,7 +179,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
     paddingTop: 44,
     paddingHorizontal: 16,
   },
@@ -182,6 +187,7 @@ const styles = StyleSheet.create({
   eventsBox: {
     maxHeight: 160, // limit size
     marginBottom: 12,
+    borderRadius: 8,
   },
   debugPanelBox: {
     backgroundColor: "transparent",
