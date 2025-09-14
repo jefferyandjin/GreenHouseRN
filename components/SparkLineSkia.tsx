@@ -19,6 +19,8 @@ import {
   Circle,
 } from "@shopify/react-native-skia";
 
+import { darkThemeSparkline, lightThemeSparkline } from "../themes/themes";
+
 interface SparklineProps {
   data: { timestamp: number; value: number }[];
   label: string;
@@ -32,21 +34,6 @@ interface SparklineProps {
 const DEFAULT_HISTORY_MS = 15 * 60 * 1000;
 const DEFAULT_HEIGHT = 70;
 
-// ------------------- THEMES -------------------
-const lightTheme = {
-  containerBg: "#ffffff",
-  label: "#374151",
-  grid: "#e5e7eb",
-  point: "#111827",
-};
-
-const darkTheme = {
-  containerBg: "#1e293b",
-  label: "#f9fafb",
-  grid: "#475569",
-  point: "#f9fafb",
-};
-
 export default function SparklineSkia({
   data,
   label,
@@ -57,7 +44,8 @@ export default function SparklineSkia({
   historyDurationMs = DEFAULT_HISTORY_MS,
 }: SparklineProps) {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
+  const theme =
+    colorScheme === "dark" ? darkThemeSparkline : lightThemeSparkline;
 
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
   const SAFE_PADDING = 20;

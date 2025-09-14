@@ -72,30 +72,27 @@ export const useDatabaseStore = create<DatabaseState>((set, get) => ({
   addSensorRecords: async (records: SensorRecord[]) => {
     const { db } = get();
     if (!db) throw new Error("Database not initialized");
-
     if (records.length === 0) return;
 
-    const placeholders = records.map(() => "(?, ?, ?, ?)").join(", ");
-    const values = records.flatMap((r) => [
-      r.temperature,
-      r.humidity,
-      r.co2,
-      r.timestamp,
-    ]);
-
     try {
-      // Wrap everything in a transaction for speed & consistency
       await db.execAsync("BEGIN TRANSACTION;");
 
-      await db.runAsync(
-        `INSERT INTO sensor_data (temperature, humidity, co2, timestamp)
-         VALUES ${placeholders};`,
-        values
-      );
+      // Prepare the insert statement once
+      const stmt = `INSERT INTO sensor_data (temperature, humidity, co2, timestamp)
+                  VALUES (?, ?, ?, ?);`;
+
+      for (const r of records) {
+        await db.runAsync(stmt, [
+          r.temperature,
+          r.humidity,
+          r.co2,
+          r.timestamp,
+        ]);
+      }
 
       await db.execAsync("COMMIT;");
 
-      // Optionally update lastRecord in store
+      // Update last record in store
       set({ lastRecord: records[records.length - 1] });
 
       console.log(`✅ Inserted ${records.length} records`);

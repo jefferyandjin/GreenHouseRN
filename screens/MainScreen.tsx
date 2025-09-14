@@ -11,7 +11,7 @@ import {
   useColorScheme,
 } from "react-native";
 
-import { darkTheme, lightTheme } from "../themes/themes";
+import { darkThemeMainScreen, lightThemeMainScreen } from "../themes/themes";
 import Header from "../components/Header";
 import MetricTile from "../components/MetricTile";
 import SparklineSkia from "../components/SparkLineSkia";
@@ -67,7 +67,8 @@ export default function App() {
 
   const colorScheme = useColorScheme();
   // console.log("colorScheme", colorScheme);
-  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
+  const theme =
+    colorScheme === "dark" ? darkThemeMainScreen : lightThemeMainScreen;
 
   return (
     <SafeAreaView
