@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import Header from "../components/Header";
 import MetricTile from "../components/MetricTile";
+import SparklineSkia from "../components/SparkLineSkia";
 import Sparkline from "../components/Sparkline";
 import DebugPanel from "../components/DebugPanel";
 import Spacer from "../components/Spacer";
@@ -101,7 +102,7 @@ export default function App() {
         </View>
 
         <View>
-          <Sparkline
+          <SparklineSkia
             data={history}
             label={"Temperature (°C)"}
             accessibilityLabel={"Temperature over time"}
