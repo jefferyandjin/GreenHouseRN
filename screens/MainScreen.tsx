@@ -21,7 +21,6 @@ import { addPhotoToQueue } from "../utils/photoQueue";
 
 import { useDataEngine, WebSocketProvider } from "../hooks";
 import { useDataEngineStore } from "../store/dataEngineStore";
-import { configureBackgroundFetch } from "../hooks/backgroundProcess/backgroundFetch";
 
 const WS_HOST =
   Platform.OS === "android" ? "ws://10.0.2.2:4000" : "ws://localhost:4000"; //TODO: use env var later
@@ -42,11 +41,6 @@ export default function App() {
     dupCount,
     gapCount,
   } = useDataEngine(provider);*/
-
-  // Configure background fetch for data upload
-  useEffect(() => {
-    configureBackgroundFetch();
-  }, []);
 
   // option B ---- USE zustand store
   const latest = useDataEngineStore((state) => state.latest);

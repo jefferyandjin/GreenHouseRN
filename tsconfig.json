@@ -1,6 +1,8 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "esModuleInterop": true, // ✅ enable this
+    "allowSyntheticDefaultImports": true // ✅ and this (helps with React default import)
   }
 }
